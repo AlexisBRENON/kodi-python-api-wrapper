@@ -2,6 +2,7 @@
 Main module for the PythonWrapper XBMC/Kodi script
 """
 import os
+import sys
 try:
     import xbmc
 except ImportError:
@@ -32,18 +33,25 @@ def main():
                 LOG("### Python wrapper ### Exiting")
                 abort = True
             else:
+                LOG("### Python wrapper ### {0}".format(cmd.strip()))
                 if cmd.startswith("eval\n"):
                     cmd = cmd.replace("eval\n", "", 1)
-                    exec(cmd)
+                    output.write("Executing '''\n{}\n'''\n".format(cmd.strip().replace("\n",
+                        "\n  ")))
+                    exec_globals = globals()
+                    sys_stdout = sys.stdout
+                    exec_globals['sys'].stdout = output
+                    exec(cmd, exec_globals)
+                    exec_globals['sys'].stdout = sys_stdout
+                    output.write("Execution done.\n\n")
                 else:
-                    LOG("### Python wrapper ### {0}".format(cmd.strip()))
                     try:
                         returned = eval(cmd, {"sys.stderr" : output})
                     except Exception as eval_exception:
                         returned = "Exception raised during evaluation : {0}".format(eval_exception)
                     output.write("Input : < {0} >\n\tReturned : < {1} >\n\n".format(cmd.strip(),
                         returned))
-                    output.flush()
+                output.flush()
 
     os.unlink("/tmp/xbmcwrapper/input_cmd")
     return 0
