@@ -6,7 +6,8 @@ import sys
 try:
     import xbmc
 except ImportError:
-    LOG = print
+#    LOG = print
+    pass
 else:
     LOG = xbmc.log
 
@@ -15,11 +16,11 @@ def main():
     LOG("### Python wrapper ### Hello !")
     try:
         os.mkdir("/tmp/xbmcwrapper")
-    except FileExistsError:
+    except OSError:
         pass
     try:
         os.mkfifo("/tmp/xbmcwrapper/input_cmd")
-    except FileExistsError:
+    except OSError:
         pass
 
     abort = False
@@ -46,7 +47,7 @@ def main():
                     output.write("Execution done.\n\n")
                 else:
                     try:
-                        returned = eval(cmd, {"sys.stderr" : output})
+                        returned = eval(cmd, globals())
                     except Exception as eval_exception:
                         returned = "Exception raised during evaluation : {0}".format(eval_exception)
                     output.write("Input : < {0} >\n\tReturned : < {1} >\n\n".format(cmd.strip(),
